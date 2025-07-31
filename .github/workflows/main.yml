@@ -22,6 +22,9 @@ jobs:
         pip3 install --upgrade cython==0.29.36 # or the latest compatible versi
         sudo apt-get update
         sudo apt-get install build-essential ccache git libncurses5:i386 libstdc++6:i386 libgtk2.0-0:i386 libpangox-1.0-0:i386 libpangoxft-1.0-0:i386 libidn11:i386 openjdk-8-jdk unzip zlib1g-dev zlib1g:i386
+        sudo dpkg --add-architecture i386
+        sudo apt update
+        sudo apt install libncurses5 libstdc++6 libgtk2.0-0 libpangox-1.0-0 libpangoxft-1.0-0 libidn11 zlib1g
     - name: Create buildozer.spec if not exists
       run: |
         if [ ! -f buildozer.spec ]; then
