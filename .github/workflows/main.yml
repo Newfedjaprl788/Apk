@@ -19,8 +19,9 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses-dev libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
         pip3 install --user buildozer
-        pip3 install cython
-
+        pip3 install --upgrade cython==0.29.36 # or the latest compatible versi
+        sudo apt-get update
+        sudo apt-get install build-essential ccache git libncurses5:i386 libstdc++6:i386 libgtk2.0-0:i386 libpangox-1.0-0:i386 libpangoxft-1.0-0:i386 libidn11:i386 openjdk-8-jdk unzip zlib1g-dev zlib1g:i386
     - name: Create buildozer.spec if not exists
       run: |
         if [ ! -f buildozer.spec ]; then
