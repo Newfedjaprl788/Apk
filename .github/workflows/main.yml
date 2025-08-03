@@ -1,36 +1,59 @@
-name: Build APK
+name: Build Android APK
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches:
+      - main
+  workflow_dispatch:
 
 jobs:
-  build-android:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-    - name: Set up Buildozer environment
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses-dev libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev
-        pip3 install --user buildozer
-        pip3 install --upgrade cython==0.29.36 # or the latest compatible versi
-        sudo apt-get update
-        sudo apt-get install build-essential ccache git libncurses5:i386 libstdc++6:i386 libgtk2.0-0:i386 libpangox-1.0-0:i386 libpangoxft-1.0-0:i386 libidn11:i386 openjdk-8-jdk unzip zlib1g-dev zlib1g:i386
-        sudo dpkg --add-architecture i386
-        sudo apt update
-        sudo apt install libncurses5 libstdc++6 libgtk2.0-0 libpangox-1.0-0 libpangoxft-1.0-0 libidn11 zlib1g
-    - name: Create buildozer.spec if not exists
-      run: |
-        if [ ! -f buildozer.spec ]; then
-          ~/.local/bin/buildozer init
-        fi
+      - name: Install Dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y python3 python3-pip openjdk-17-jdk unzip zip wget git
 
-    - name: Build Android APK
-      run: |
-        ~/.local/bin/buildozer android debug
+      - name: Install p4a (python-for-android)
+        run: pip3 install python-for-android
+
+      - name: Download Android SDK & NDK
+        run: |
+          mkdir -p $HOME/android
+          wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdtools.zip
+          unzip -q cmdtools.zip -d $HOME/android/cmdline-tools
+          mkdir -p $HOME/android/cmdline-tools/latest
+          mv $HOME/android/cmdline-tools/cmdline-tools/* $HOME/android/cmdline-tools/latest/
+          
+          export ANDROID_SDK_ROOT=$HOME/android
+          yes | $HOME/android/cmdline-tools/latest/bin/sdkmanager --licenses
+          $HOME/android/cmdline-tools/latest/bin/sdkmanager "platforms;android-34" "platform-tools" "build-tools;34.0.0" "ndk;25.2.9519653"
+
+      - name: Build APK
+        run: |
+          export ANDROID_SDK_ROOT=$HOME/android
+          export ANDROID_NDK_ROOT=$HOME/android/ndk/25.2.9519653
+          p4a apk --private . \
+            --package org.techris.kmd \
+            --name "KivyMD App" \
+            --version 24.05.10 \
+            --bootstrap sdl2 \
+            --requirements python3==3.11.2,kivy,kivymd \
+            --sdk-dir $ANDROID_SDK_ROOT \
+            --ndk-dir $ANDROID_NDK_ROOT \
+            --android-api 34 \
+            --ndk-api 24 \
+            --arch armeabi-v7a --arch arm64-v8a --arch x86_64 \
+            --permission INTERNET \
+            --debug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: kivymd-apk
+          path: dist/*.apk
