@@ -14,14 +14,17 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      # Устанавливаем все нужные пакеты (autotools и libtool включены)
       - name: Install Dependencies
         run: |
           sudo apt update
-          sudo apt install -y python3 python3-pip openjdk-17-jdk unzip zip wget git
+          sudo apt install -y python3 python3-pip openjdk-17-jdk unzip zip wget git \
+            autoconf automake libtool pkg-config
 
-      - name: Install p4a (python-for-android)
+      - name: Install python-for-android
         run: pip3 install python-for-android
 
+      # Скачиваем Android SDK и NDK
       - name: Download Android SDK & NDK
         run: |
           mkdir -p $HOME/android
@@ -34,11 +37,22 @@ jobs:
           yes | $HOME/android/cmdline-tools/latest/bin/sdkmanager --licenses
           $HOME/android/cmdline-tools/latest/bin/sdkmanager "platforms;android-34" "platform-tools" "build-tools;34.0.0" "ndk;25.2.9519653"
 
+      # Чиним устаревшие макросы перед сборкой, если они встречаются в зависимостях
+      - name: Fix Autotools Macros
+        run: |
+          if [ -f configure.ac ]; then
+            echo "Found configure.ac, running fixes..."
+            libtoolize || true
+            autoreconf --install --force --verbose || true
+            autoupdate || true
+          fi
+
       - name: Build APK
         run: |
           export ANDROID_SDK_ROOT=$HOME/android
           export ANDROID_NDK_ROOT=$HOME/android/ndk/25.2.9519653
           p4a apk --private . \
+            --use-setup-py \
             --package org.techris.kmd \
             --name "KivyMD App" \
             --version 24.05.10 \
