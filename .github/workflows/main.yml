@@ -1,46 +1,22 @@
-name: Build Android APK (Full Auto Buildozer)
+name: Send Email via Own SMTP
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 jobs:
-  build:
-    runs-on: ubuntu-20.04
+  send-email:
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Install system dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y \
-            python3 python3-pip openjdk-17-jdk unzip zip wget git \
-            libssl-dev libffi-dev build-essential libsqlite3-dev zlib1g-dev \
-            autoconf automake libtool pkg-config \
-            adb libncurses5 libncurses5-dev \
-            ccache libstdc++6 libz1 gcc g++ \
-            cmake make curl
-
-      - name: Install Python dependencies (Buildozer, Cython)
-        run: |
-          pip3 install --upgrade pip setuptools wheel
-          pip3 install --user buildozer cython
-
-      - name: Setup environment
-        run: |
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
-
-      - name: Build APK with Buildozer
-        run: |
-          buildozer android clean
-          buildozer android debug
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
+      - name: Send Email
+        uses: dawidd6/action-send-mail@v3
         with:
-          name: kivy-apk
-          path: bin/*.apk
+          server_address: mail.folus.com
+          server_port: 25
+          secure: false
+          username: ""
+          password: ""
+          subject: "Привет"
+          body: "Привет!"
+          to: "pnazestkin@gmail.com"
+          from: "anyone@folus.com"
