@@ -1,23 +1,9 @@
-from kivymd.app import MDApp
-from kivymd.uix.label import MDLabel
-from kivymd.uix.boxlayout import MDBoxLayout
+from kivy.app import App
+from kivy.uix.label import Label
 
-
-class MainApp(MDApp):
+class MyApp(App):
     def build(self):
-        self.theme_cls.primary_palette = "Blue"
-        return MDBoxLayout(
-            orientation="vertical",
-            children=[
-                MDLabel(
-                    text="Привет из APK!",
-                    halign="center",
-                    theme_text_color="Custom",
-                    text_color=(1, 1, 1, 1),
-                )
-            ],
-        )
-
+        return Label(text="Hello from Kivy on Android!")
 
 if __name__ == "__main__":
-    MainApp().run()
+    MyApp().run()
